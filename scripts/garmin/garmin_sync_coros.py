@@ -66,7 +66,7 @@ if __name__ == "__main__":
   for un_sync_id in un_sync_id_list:
     try:
       file = garminClient.downloadFitActivity(un_sync_id)
-      file_path = os.path.join(GARMIN_FIT_DIR, f"{un_sync_id}.zip")
+      file_path = os.path.join(GARMIN_FIT_DIR, f"{un_sync_id}.tcx")
       with open(file_path, "wb") as fb:
           fb.write(file)
       upload_result = corosClient.uploadActivity(file_path)
