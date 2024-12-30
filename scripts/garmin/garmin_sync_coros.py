@@ -73,7 +73,7 @@ if __name__ == "__main__":
       with open(file_path, "wb") as fb:
           fb.write(file)
       client = AliOssClient()
-      oss_obj = client.multipart_upload(file_path, f"{un_sync_id}.zip")
+      oss_obj = client.multipart_upload(file_path, f"{un_sync_id}.tcx")
       upload_result = corosClient.uploadActivity(oss_obj, calculate_md5_file(file_path), f"{un_sync_id}.zip")
       if upload_result == '0000':
           garmin_db.updateSyncStatus(un_sync_id)
