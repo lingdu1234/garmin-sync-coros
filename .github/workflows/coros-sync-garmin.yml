@@ -3,7 +3,7 @@ name: cors-sync-garmin
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0,6,19 * * ?'
+    - cron: '0 1,7,20 * * ?'
 env:
   GITHUB_NAME: lingdu
   GITHUB_EMAIL: ${{ secrets.GARMIN_EMAIL }}
