@@ -69,12 +69,12 @@ if __name__ == "__main__":
   for un_sync_id in un_sync_id_list:
     try:
       file = garminClient.downloadFitActivity(un_sync_id)
-      file_path = os.path.join(GARMIN_FIT_DIR, f"{un_sync_id}.zip")
+      file_path = os.path.join(GARMIN_FIT_DIR, f"{un_sync_id}.tcx")
       with open(file_path, "wb") as fb:
           fb.write(file)
       client = AliOssClient()
-      oss_obj = client.multipart_upload(file_path, f"{un_sync_id}.zip")
-      upload_result = corosClient.uploadActivity(oss_obj, calculate_md5_file(file_path), f"{un_sync_id}.zip")
+      oss_obj = client.multipart_upload(file_path, f"{un_sync_id}.tcx")
+      upload_result = corosClient.uploadActivity(oss_obj, calculate_md5_file(file_path), f"{un_sync_id}.tcx")
       if upload_result == '0000':
           garmin_db.updateSyncStatus(un_sync_id)
     except Exception as err:
