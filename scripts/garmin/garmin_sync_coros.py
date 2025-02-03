@@ -17,6 +17,7 @@ SYNC_CONFIG = {
     'GARMIN_AUTH_DOMAIN': '',
     'GARMIN_EMAIL': '',
     'GARMIN_PASSWORD': '',
+    'GARMIN_NEWEST_NUM': 0,
     "COROS_EMAIL": '',
     "COROS_PASSWORD": '',
 }
@@ -49,12 +50,14 @@ if __name__ == "__main__":
   GARMIN_EMAIL = SYNC_CONFIG["GARMIN_EMAIL"]
   GARMIN_PASSWORD = SYNC_CONFIG["GARMIN_PASSWORD"]
   GARMIN_AUTH_DOMAIN = SYNC_CONFIG["GARMIN_AUTH_DOMAIN"]
-  
-  garminClient = GarminClient(GARMIN_EMAIL, GARMIN_PASSWORD, GARMIN_AUTH_DOMAIN)
+  GARMIN_NEWEST_NUM = SYNC_CONFIG["GARMIN_NEWEST_NUM"]
+    
+  garminClient = GarminClient(GARMIN_EMAIL, GARMIN_PASSWORD, GARMIN_AUTH_DOMAIN, GARMIN_NEWEST_NUM)
 
   COROS_EMAIL = SYNC_CONFIG["COROS_EMAIL"]
   COROS_PASSWORD = SYNC_CONFIG["COROS_PASSWORD"]
   corosClient = CorosClient(COROS_EMAIL, COROS_PASSWORD)
+  corosClient.login()
   all_activities = garminClient.getAllActivities()
   if all_activities == None or len(all_activities) == 0:
       exit()
@@ -66,19 +69,28 @@ if __name__ == "__main__":
   un_sync_id_list = garmin_db.getUnSyncActivity()
   if un_sync_id_list == None or len(un_sync_id_list) == 0:
       exit()
+  file_path_list = []
   for un_sync_id in un_sync_id_list:
     try:
       file = garminClient.downloadFitActivity(un_sync_id)
       file_path = os.path.join(GARMIN_FIT_DIR, f"{un_sync_id}.zip")
       with open(file_path, "wb") as fb:
           fb.write(file)
+      file_path_list.append(file_path)
+      
+    except Exception as err:
+      print(err)
+      # garmin_db.updateExceptionSyncStatus(un_sync_id)
+      # exit()
+  for file_path in file_path_list:
+    try:
       client = AliOssClient()
-      oss_obj = client.multipart_upload(file_path, f"{un_sync_id}.zip")
-      upload_result = corosClient.uploadActivity(oss_obj, calculate_md5_file(file_path), f"{un_sync_id}.zip")
-      if upload_result == '0000':
+      oss_obj = client.multipart_upload(file_path,  f"{corosClient.userId}/{calculate_md5_file(file_path)}.zip")
+      size = os.path.getsize(file_path)
+      upload_result = corosClient.uploadActivity(f"fit_zip/{corosClient.userId}/{calculate_md5_file(file_path)}.zip", calculate_md5_file(file_path), f"{un_sync_id}.zip", size)
+      if upload_result:
           garmin_db.updateSyncStatus(un_sync_id)
     except Exception as err:
       print(err)
       garmin_db.updateExceptionSyncStatus(un_sync_id)
       exit()
-    
